@@ -9,25 +9,33 @@ if (Gem.win_platform?)
   end
 end
 
-require_relative "game"
-require_relative "result_printer"
-require_relative "word_reader"
+#require 'unicode_utils/upcase'
 
-puts "Игра виселица"
-sleep 1
+require_relative "lib/game"
+require_relative "lib/result_printer"
+require_relative "lib/word_reader"
 
-printer = ResultPrinter.new
+VERSION = "Игра виселица. Версия 5"
+
 word_reader = WordReader.new
-
 begin
-    words_file_name = File.dirname(__FILE__) + "/data/words.txt"
+    words_file_name = "#{File.dirname(__FILE__)}/data/words.txt"
   rescue Errno::ENOENT => error
   puts "\nНе найден файл с перечнем слов!\n" + error.message
 end
 
-game = Game.new(word_reader.read_from_file(words_file_name))
+if word_reader.read_from_args == nil
+  word = word_reader.read_from_file(words_file_name)
+else
+  word = word_reader.read_from_args
+end
 
-while game.status == 0
+game = Game.new(word)
+game.version = VERSION
+
+printer = ResultPrinter.new(game)
+
+while game.in_progress?
   printer.print_status(game)
   game.ask_next_letter
 end
